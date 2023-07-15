@@ -14,5 +14,5 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'com.google.dagger', name: 'dagger', version: '2.46.1'
+    implementation group: 'org.springframework', name: 'spring-context', version: '6.0.11'
 }

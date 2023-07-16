@@ -13,43 +13,44 @@ import java.util.zip.GZIPOutputStream;
  * @author Nikita Osiptsov
  */
 @Component
-public class StringCompressionUtil {
+public class CompressionUtil {
     /**
-     * <p>Compresses given string.</p>
-     * @param string string to compress.
-     * @return compressed bytes of string.
+     * <p>Compresses given array of bytes.</p>
+     * @param data data to compress.
+     * @return compressed data.
      * @throws IOException if an I/O error has occurred.
      */
-    public byte[] compressString(String string) throws IOException {
-        if(string == null || string.length() == 0)
+    public byte[] compress(byte[] data) throws IOException {
+        if(data == null || data.length == 0)
             return null;
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         GZIPOutputStream gzipStream = new GZIPOutputStream(stream);
-        gzipStream.write(string.getBytes());
-
-        String output = stream.toString();
+        gzipStream.write(data);
 
         gzipStream.close();
+
+        byte[] output = stream.toByteArray();
+
         stream.close();
 
-        return stream.toByteArray();
+        return output;
     }
 
     /**
-     * <p>Decompresses given array of bytes and returns its string representation.</p>
-     * @param string byte representation of compressed string.
-     * @return decompressed string.
+     * <p>Decompresses given array of bytes.</p>
+     * @param data data to decompress.
+     * @return decompressed data.
      * @throws IOException if an I/O error has occurred.
      */
-    public String decompressString(byte[] string) throws IOException {
-        if(string == null || string.length == 0)
+    public byte[] decompress(byte[] data) throws IOException {
+        if(data == null || data.length == 0)
             return null;
 
-        ByteArrayInputStream stream = new ByteArrayInputStream(string);
+        ByteArrayInputStream stream = new ByteArrayInputStream(data);
         GZIPInputStream gzipStream = new GZIPInputStream(stream);
 
-        String result = new String(gzipStream.readAllBytes());
+        byte[] result = gzipStream.readAllBytes();
 
         gzipStream.close();
         stream.close();

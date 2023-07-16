@@ -10,10 +10,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.SecureRandom;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
@@ -22,7 +20,7 @@ import java.util.Base64;
  * @author Nikita Osiptsov
  */
 @Component
-public class StringEncryptionUtil {
+public class EncryptionUtil {
     private final static int SaltSize = 16,
             hashSize = 128,
             hashIterations = 65536;
@@ -30,37 +28,33 @@ public class StringEncryptionUtil {
     @Autowired
     private Cipher cipher;
 
-    public StringEncryptionUtil() {}
-
     /**
-     * <p>Performs AES encryption of string, then Base64 encodes it.</p>
-     * @param string string to encrypt,
+     * <p>Performs AES encryption of data, then Base64 encodes it.</p>
+     * @param data data to encrypt,
      * @param password password to create key from.
-     * @return string of following format: iv$data$salt, where data is encrypted and Base64 encoded input string.
-     * @throws GeneralSecurityException if cipherer work caused exceptions (unlikely situation).
+     * @return string of following format: iv$data$salt, where data is encrypted and Base64 encoded input.
+     * @throws GeneralSecurityException if cipher work caused exceptions (unlikely situation).
      */
-    public String encryptString(String string, String password) throws GeneralSecurityException {
+    public String encrypt(byte[] data, String password) throws GeneralSecurityException {
         Base64.Encoder enc = Base64.getEncoder();
         byte[] iv = generateByteSequence(cipher.getBlockSize());
         byte[] salt = generateByteSequence(SaltSize);
-        byte[] inputBytes = string.getBytes();
 
-        byte[] encrypted = performCipherWork(iv, inputBytes, salt, password, Cipher.ENCRYPT_MODE);;
+        byte[] encrypted = performCipherWork(iv, data, salt, password, Cipher.ENCRYPT_MODE);
 
         return enc.encodeToString(iv) + "$" + enc.encodeToString(encrypted) + "$" + enc.encodeToString(salt);
     }
 
     /**
-     * <p>Base64 decodes stringm, then decrypts it using AES.<p/>
+     * <p>Base64 decodes string, then decrypts it using AES.<p/>
      * @param string string to decrypt, of following format: iv$data$salt,
-     *              where data is encrypted and Base64 encoded string.
+     *              where data is encrypted and Base64 encoded data.
      * @param password password to create key from.
      * @return decoded and decrypted "data" part of input string.
      * @throws IllegalArgumentException if input string is not of iv$data$salt format.
-     * @throws GeneralSecurityException if cipherer work caused exceptions (unlikely situation).
+     * @throws GeneralSecurityException if cipher work caused exceptions (unlikely situation).
      */
-    public String decryptString(String string, String password) throws IllegalArgumentException,
-            GeneralSecurityException {
+    public byte[] decrypt(String string, String password) throws IllegalArgumentException, GeneralSecurityException {
         String[] props = string.split("\\$");
         if(props.length != 3)
             throw new IllegalArgumentException();
@@ -72,30 +66,26 @@ public class StringEncryptionUtil {
 
         byte[] decrypted = performCipherWork(iv, inputBytes, salt, password, Cipher.DECRYPT_MODE);
 
-        return new String(decrypted);
+        return decrypted;
     }
 
     private byte[] performCipherWork(byte[] iv, byte[] input, byte[] salt, String password, int mode)
-            throws IllegalBlockSizeException, BadPaddingException,
-            InvalidAlgorithmParameterException, InvalidKeyException {
+            throws IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException,
+            InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {
         IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
         SecretKeySpec secretKeySpec = new SecretKeySpec(hashPassword(password, salt, hashSize), "AES");
 
         cipher.init(mode, secretKeySpec, ivParameterSpec);
         byte[] output = cipher.doFinal(input);
 
-        return input;
+        return output;
     }
 
-    private byte[] hashPassword(String password, byte[] salt, int size) {
+    private byte[] hashPassword(String password, byte[] salt, int size) throws NoSuchAlgorithmException,
+            InvalidKeySpecException {
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, hashIterations, size);
-        try {
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            return factory.generateSecret(spec).getEncoded();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return password.getBytes();
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        return factory.generateSecret(spec).getEncoded();
     }
 
     private byte[] generateByteSequence(int size) {

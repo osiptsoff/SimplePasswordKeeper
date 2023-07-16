@@ -13,8 +13,6 @@ import java.io.IOException;
  */
 @Component
 public class FileSystemUtil {
-    public FileSystemUtil() { }
-
     /**
      * <p>Writes given data to file with given path.</p>
      * <p>If given data is {@code String}, its bytes will be stored in file; if data is {@code byte[]}, it will be
@@ -51,10 +49,10 @@ public class FileSystemUtil {
     /**
      * @param path path to directory.
      * @return names of files located in given directory.
-     * @throws IllegalArgumentException if given file does not exist, is not directory or application
-     * has no rights to access it.
+     * @throws IllegalArgumentException if given file does not exist or is not directory,
+     * @throws SecurityException if application has no rights to access given file.
      */
-    public String[] getContentNames(String path) throws IllegalArgumentException {
+    public String[] getContentNames(String path) throws IllegalArgumentException, SecurityException {
         File file = new File(path);
 
         if(!file.isDirectory())

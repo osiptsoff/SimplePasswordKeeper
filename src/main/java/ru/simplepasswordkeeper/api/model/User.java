@@ -1,15 +1,13 @@
 package ru.simplepasswordkeeper.api.model;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * <p>Model of user, owner of {@link Account}s.</p>
  * @author Nikita Osiptsov
  */
-public class User {
+public class User implements Serializable {
     private String name;
     private Set<Account> accounts;
 
@@ -73,13 +71,19 @@ public class User {
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return Objects.hash(name, accounts);
     }
 
     @Override
     public boolean equals(Object obj) {
+        if(obj == null)
+            return false;
+        if(this == obj)
+            return true;
+
         if(obj instanceof User)
-            return name.equals(((User) obj).getName());
+            return name.equals(((User) obj).name) && accounts.equals(((User) obj).accounts);
+
         return false;
     }
 }

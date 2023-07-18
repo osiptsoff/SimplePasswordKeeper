@@ -2,6 +2,7 @@ package ru.simplepasswordkeeper.api.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.simplepasswordkeeper.api.util.interfaces.EncryptionUtil;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -10,7 +11,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
@@ -20,13 +25,21 @@ import java.util.Base64;
  * @author Nikita Osiptsov
  */
 @Component
-public class EncryptionUtil {
+public class EncryptionUtilImpl implements EncryptionUtil {
     private final static int SaltSize = 16,
             hashSize = 128,
             hashIterations = 65536;
 
+    private final Cipher cipher;
+
+    /**
+     * <p>Creates {@link EncryptionUtilImpl} with given {@link Cipher}.</p>
+     * @param cipher {@link Cipher} to use.
+     */
     @Autowired
-    private Cipher cipher;
+    public EncryptionUtilImpl(Cipher cipher) {
+        this.cipher = cipher;
+    }
 
     /**
      * <p>Performs AES encryption of data, then Base64 encodes it.</p>
@@ -35,6 +48,7 @@ public class EncryptionUtil {
      * @return string of following format: iv$data$salt, where data is encrypted and Base64 encoded input.
      * @throws GeneralSecurityException if cipher work caused exceptions (unlikely situation).
      */
+    @Override
     public String encrypt(byte[] data, String password) throws GeneralSecurityException {
         Base64.Encoder enc = Base64.getEncoder();
         byte[] iv = generateByteSequence(cipher.getBlockSize());
@@ -54,6 +68,7 @@ public class EncryptionUtil {
      * @throws IllegalArgumentException if input string is not of iv$data$salt format.
      * @throws GeneralSecurityException if cipher work caused exceptions (unlikely situation).
      */
+    @Override
     public byte[] decrypt(String string, String password) throws IllegalArgumentException, GeneralSecurityException {
         String[] props = string.split("\\$");
         if(props.length != 3)

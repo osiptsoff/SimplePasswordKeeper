@@ -4,9 +4,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import ru.simplepasswordkeeper.api.util.FileSystemUtil;
-import ru.simplepasswordkeeper.api.util.CompressionUtil;
-import ru.simplepasswordkeeper.api.util.EncryptionUtil;
+import ru.simplepasswordkeeper.api.dao.OnDiskUserStorage;
+import ru.simplepasswordkeeper.api.model.Account;
+import ru.simplepasswordkeeper.api.model.User;
 
 import javax.crypto.Cipher;
 import java.io.IOException;
@@ -25,38 +25,28 @@ public class Main {
         return null;
     }
 
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
+    public static void main(String[] args) throws IOException, GeneralSecurityException, ClassNotFoundException {
         var context = new AnnotationConfigApplicationContext(Main.class);
-        var util = new FileSystemUtil();
-        var util1 = context.getBean(EncryptionUtil.class);
-        var util2 = new CompressionUtil();
+        var storage = context.getBean(OnDiskUserStorage.class);
 
-        // try read data and compress; sizes in bytes out (2)
-        String example = new String(util.ReadFromFile("/home/badger/Repos/folder/hello"));
-        //System.out.println(example);
-        System.out.println(example.getBytes().length);
-        System.out.println(util2.compress(example.getBytes()).length);
+       var user = new User("Alexey");
+       var facebookAccount = new Account("Facebook");
+       var amazonAccount = new Account("Amazon");
 
-        // try encrypt data; size in bytes out (1)
-        String encoded = util1.encrypt(example.getBytes(), "123");
-        //System.out.println(encoded);
-        System.out.println(encoded.getBytes().length);
+       facebookAccount.putProperty("login", "alex");
+       facebookAccount.putProperty("password", "123");
 
-        // try compress encrypted data and write on disk; size out (1)
-        byte[] encryptedCompressed = util2.compress(encoded.getBytes());
-        util.WriteToFile("/home/badger/Repos/folder/b.txt", encryptedCompressed, false);
-        //System.out.println(new String(encryptedCompressed));
-        System.out.println(encryptedCompressed.length);
+       amazonAccount.putProperty("login", "alexxx");
+       amazonAccount.putProperty("password", "1956");
 
-        // try read data from disk, decrypt and decompress it
-        byte[] readEncryptedCompressed = util.ReadFromFile("/home/badger/Repos/folder/b.txt");
-        //System.out.println(new String(readEncryptedCompressed));
-        var encryptedDecompressed = util2.decompress(readEncryptedCompressed);
-        //System.out.println(new String(encryptedDecompressed));
-        var decryptedDecompressed = new String(util1.decrypt(new String(encryptedDecompressed), "123"));
-        //System.out.println(new String(decryptedDecompressed));
+       user.putAccount(facebookAccount);
+       user.putAccount(amazonAccount);
 
-        // check equality
-        System.out.println(decryptedDecompressed.equals(example));
-    }
+       storage.setFolderPath("/home/badger/Repos/folder");
+        storage.saveUser(user, "123");
+
+        var newu = storage.getUser("Alexey", "123");
+
+        System.out.println(newu.equals(user));
+   }
 }

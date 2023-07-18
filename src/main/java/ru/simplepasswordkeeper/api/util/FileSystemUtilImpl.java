@@ -1,6 +1,7 @@
 package ru.simplepasswordkeeper.api.util;
 
 import org.springframework.stereotype.Component;
+import ru.simplepasswordkeeper.api.util.interfaces.FileSystemUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +13,7 @@ import java.io.IOException;
  * @author Nikita Osiptsov
  */
 @Component
-public class FileSystemUtil {
+public class FileSystemUtilImpl implements FileSystemUtil {
     /**
      * <p>Writes given data to file with given path.</p>
      * <p>If given data is {@code String}, its bytes will be stored in file; if data is {@code byte[]}, it will be
@@ -24,6 +25,7 @@ public class FileSystemUtil {
      * @throws IOException if file with given name cannot be created or
      * exists and application has no rights to access it.
      */
+    @Override
     public void WriteToFile(String filename, Object data, boolean append) throws IOException {
         FileOutputStream stream = new FileOutputStream(filename, append);
 
@@ -37,6 +39,7 @@ public class FileSystemUtil {
      * @return file contents.
      * @throws IOException if file does not exist or application has no rights to access it.
      */
+    @Override
     public byte[] ReadFromFile(String filename) throws IOException {
         FileInputStream stream = new FileInputStream(filename);
 
@@ -52,6 +55,7 @@ public class FileSystemUtil {
      * @throws IllegalArgumentException if given file does not exist or is not directory,
      * @throws SecurityException if application has no rights to access given file.
      */
+    @Override
     public String[] getContentNames(String path) throws IllegalArgumentException, SecurityException {
         File file = new File(path);
 

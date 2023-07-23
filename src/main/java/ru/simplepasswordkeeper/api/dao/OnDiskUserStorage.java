@@ -12,9 +12,6 @@ import ru.simplepasswordkeeper.api.util.interfaces.EncryptionUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.FileSystemUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.UserSerializationUtil;
 
-import java.io.IOException;
-import java.io.ObjectStreamException;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,40 +44,46 @@ public class OnDiskUserStorage implements UserStorage {
     @Override
     public List<String> getUsernames() {
         try {
-            // logging
             return List.of(fileSystemUtil.getContentNames(folderPath));
         } catch (Exception e) {
-            // logging
             return Collections.emptyList();
         }
     }
 
-    /**
-     * @throws IOException if I/O error has occured (e.g. user does not exist),
-     * @throws GeneralSecurityException if encryption configured incorrectly (unlikely),
-     * @throws IllegalArgumentException if ciphered object has wrong format i.e. data is corrupted,
-     * @throws ObjectStreamException if serialization was not successfull.
-     */
     @Override
-    public User getUser(String name, String password) throws IOException, GeneralSecurityException,
-            IllegalArgumentException, ObjectStreamException {
-        byte[] userBytes = fileSystemUtil.ReadFromFile(folderPath + "/" + name);
-        userBytes = compressionUtil.decompress(userBytes);
-        userBytes = encryptionUtil.decrypt(new String(userBytes), password);
-        User user = userSerializationUtil.deserialize(userBytes);
-        return user;
+    public User getUser(String name, String password) throws UserAccessException, UserProcessingException {
+        byte[] userBytes;
+        try {
+            userBytes = fileSystemUtil.ReadFromFile(folderPath + "/" + name);
+        } catch (Exception e) {
+            UserAccessException uae = new UserAccessException("Failed to get user.");
+            uae.setStackTrace(e.getStackTrace());
+            throw uae;
+        }
+        try {
+            userBytes = compressionUtil.decompress(userBytes);
+            userBytes = encryptionUtil.decrypt(new String(userBytes), password);
+            User user = userSerializationUtil.deserialize(userBytes);
+            return user;
+        } catch (Exception e) {
+            UserProcessingException upe = new UserProcessingException("Failed to extract user.");
+            upe.setStackTrace(e.getStackTrace());
+            throw upe;
+        }
     }
 
-    /**
-     * @throws GeneralSecurityException if encryption configured incorrectly (unlikely),
-     * @throws IOException if I/O error has occured (e.g. file cannot be created).
-     */
     @Override
-    public void saveUser(User user, String password) throws GeneralSecurityException, IOException {
-        byte[] userBytes = userSerializationUtil.serialize(user);
-        String userString = encryptionUtil.encrypt(userBytes, password);
-        userBytes = compressionUtil.compress(userString.getBytes());
-        fileSystemUtil.WriteToFile(folderPath + "/" + user.getName(), userBytes, false);
+    public void saveUser(User user, String password) throws UserProcessingException {
+        try {
+            byte[] userBytes = userSerializationUtil.serialize(user);
+            String userString = encryptionUtil.encrypt(userBytes, password);
+            userBytes = compressionUtil.compress(userString.getBytes());
+            fileSystemUtil.WriteToFile(folderPath + "/" + user.getName(), userBytes, false);
+        } catch (Exception e) {
+            UserProcessingException upe = new UserProcessingException("Failed to save user.");
+            upe.setStackTrace(e.getStackTrace());
+            throw upe;
+        }
     }
 
     /**

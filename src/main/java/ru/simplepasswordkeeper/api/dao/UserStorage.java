@@ -18,15 +18,16 @@ public interface UserStorage {
      * @param name name of required user,
      * @param password password user to access user data.
      * @return required user.
-     * @throws Exception if something wrong.
+     * @throws UserAccessException if storage failed to access user,
+     * @throws UserProcessingException if any error occurred while processing user.
      */
-     User getUser(String name, String password) throws Exception;
+     User getUser(String name, String password) throws UserAccessException, UserProcessingException;
 
     /**
      * <p>Saves given user to storage.</p>
      * @param user user to save.
      * @param password password of user, used to create key for encryption.
-     * @throws Exception if something wrong.
+     * @throws UserProcessingException if any error occurred while processing user.
      */
-     void saveUser(User user, String password) throws Exception;
+     void saveUser(User user, String password) throws UserProcessingException;
 }

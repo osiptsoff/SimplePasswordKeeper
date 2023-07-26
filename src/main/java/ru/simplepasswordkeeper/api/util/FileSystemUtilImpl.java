@@ -17,13 +17,7 @@ public class FileSystemUtilImpl implements FileSystemUtil {
     /**
      * <p>Writes given data to file with given path.</p>
      * <p>If given data is {@code String}, its bytes will be stored in file; if data is {@code byte[]}, it will be
-     * stored in file; otherwise {@link #toString()} and then bytes will be stored.</p>
-     * @param filename name of file,
-     * @param data data to write to file,
-     * @param append value indicating whether to append data to file or not:
-     *               append if {@code true}, overwrite file otherwise.
-     * @throws IOException if file with given name cannot be created or
-     * exists and application has no rights to access it.
+     * stored in file; otherwise {@link #toString()} will be invoked and then bytes will be stored.</p>
      */
     @Override
     public void WriteToFile(String filename, Object data, boolean append) throws IOException {
@@ -33,12 +27,6 @@ public class FileSystemUtilImpl implements FileSystemUtil {
         stream.close();
     }
 
-    /**
-     * <p>Reads data from given file.<p/>
-     * @param filename name of file.
-     * @return file contents.
-     * @throws IOException if file does not exist or application has no rights to access it.
-     */
     @Override
     public byte[] ReadFromFile(String filename) throws IOException {
         FileInputStream stream = new FileInputStream(filename);
@@ -49,20 +37,28 @@ public class FileSystemUtilImpl implements FileSystemUtil {
         return result;
     }
 
-    /**
-     * @param path path to directory.
-     * @return names of files located in given directory.
-     * @throws IllegalArgumentException if given file does not exist or is not directory,
-     * @throws SecurityException if application has no rights to access given file.
-     */
     @Override
     public String[] getContentNames(String path) throws IllegalArgumentException, SecurityException {
+        if(path == null || path.isBlank())
+            throw new IllegalArgumentException();
+
         File file = new File(path);
 
         if(!file.isDirectory())
             throw new IllegalArgumentException();
 
         return file.list();
+    }
+
+    @Override
+    public void deleteFile(String path) throws IllegalArgumentException, SecurityException {
+        if(path == null || path.isBlank())
+            throw new IllegalArgumentException();
+
+        File file = new File(path);
+
+        if(!file.delete())
+            throw new IllegalArgumentException();
     }
 
     private byte[] Resolve(Object object) {

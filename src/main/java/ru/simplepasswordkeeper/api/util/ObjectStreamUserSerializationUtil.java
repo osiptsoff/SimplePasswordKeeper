@@ -14,17 +14,11 @@ import java.io.StreamCorruptedException;
 
 /**
  * <p>Class for serialization of {@link User} instances.</p>
+ * <p>Uses basic Java serialization and {@code ObjectStream}s to perform its work.</p>
  * @author Nikita Osiptsov
  */
 @Component
 public class ObjectStreamUserSerializationUtil implements UserSerializationUtil {
-    /**
-     * <p>Converts given {@link User} instance to array of bytes.</p>
-     * <p>User can be completely restored from this array with {@link #deserialize(byte[])} method.</p>
-     * @param user User to serialize.
-     * @return serialized user.
-     * @throws IOException if an I/O error occurred.
-     */
     @Override
     public byte[] serialize(User user) throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -40,10 +34,6 @@ public class ObjectStreamUserSerializationUtil implements UserSerializationUtil 
      * <p>Converts given array of bytes to {@link User} instance.</p>
      * <p>Arrays created by {@link #serialize(User)} will suffice.</p>
      * <p>Note that situation when this method successfully restores corrupted data is possible.</p>
-     * @param data User stored as array of bytes.
-     * @return restored User.
-     * @throws IOException if an I/O error occurred,
-     * @throws ObjectStreamException if deserialzation was unsuccessful.
      */
     @Override
     public User deserialize(byte[] data) throws IOException, ObjectStreamException {

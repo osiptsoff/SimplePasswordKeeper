@@ -36,5 +36,5 @@ public interface UserStorage {
      * @param name name of user.
      * @throws UserProcessingException if any error occurred while processing user.
      */
-     void deleteUser(String name) throws UserProcessingException;
+     void deleteUser(String name) throws UserAccessException, UserProcessingException;
 }

@@ -61,6 +61,16 @@ public class FileSystemUtilImpl implements FileSystemUtil {
             throw new IllegalArgumentException();
     }
 
+    @Override
+    public boolean fileExists(String path) {
+        try {
+            File file = new File(path);
+            return file.exists();
+        } catch(Exception e) {
+            return false;
+        }
+    }
+
     private byte[] Resolve(Object object) {
         if (object instanceof byte[])
             return (byte[])object;

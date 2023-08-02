@@ -12,6 +12,7 @@ import ru.simplepasswordkeeper.api.util.interfaces.EncryptionUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.FileSystemUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.UserSerializationUtil;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,6 +78,9 @@ public class OnDiskUserStorage implements UserStorage {
     @Override
     public void saveUser(User user, String password) throws UserProcessingException {
         try {
+            File folder = new File(folderPath);
+            folder.mkdirs();
+
             byte[] userBytes = userSerializationUtil.serialize(user);
             String userString = encryptionUtil.encrypt(userBytes, password);
             userBytes = compressionUtil.compress(userString.getBytes());
@@ -87,7 +91,10 @@ public class OnDiskUserStorage implements UserStorage {
     }
 
     @Override
-    public void deleteUser(String name) throws UserProcessingException {
+    public void deleteUser(String name) throws UserAccessException, UserProcessingException {
+        if(!fileSystemUtil.fileExists(folderPath + "/" + name))
+            throw new UserAccessException("User does not exist.");
+
         try {
             fileSystemUtil.deleteFile(folderPath + "/" + name);
         } catch (Exception e) {

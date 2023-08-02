@@ -43,4 +43,11 @@ public interface FileSystemUtil {
      */
     void deleteFile(String path) throws IllegalArgumentException, SecurityException;
 
+    /**
+     * <p>Checks if given file exists.</p>
+     * @param path path to file.
+     * @return {@code true} if file exists, {@code false} otherwise.
+     */
+    boolean fileExists(String path);
+
 }

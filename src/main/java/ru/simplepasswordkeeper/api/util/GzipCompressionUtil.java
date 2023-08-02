@@ -15,12 +15,6 @@ import java.util.zip.GZIPOutputStream;
  */
 @Component
 public class GzipCompressionUtil implements CompressionUtil {
-    /**
-     * <p>Compresses given array of bytes.</p>
-     * @param data data to compress.
-     * @return compressed data.
-     * @throws IOException if an I/O error has occurred.
-     */
     @Override
     public byte[] compress(byte[] data) throws IOException {
         if(data == null || data.length == 0)
@@ -37,12 +31,6 @@ public class GzipCompressionUtil implements CompressionUtil {
         return output;
     }
 
-    /**
-     * <p>Decompresses given array of bytes.</p>
-     * @param data data to decompress.
-     * @return decompressed data.
-     * @throws IOException if an I/O error has occurred.
-     */
     @Override
     public byte[] decompress(byte[] data) throws IOException {
         if(data == null || data.length == 0)

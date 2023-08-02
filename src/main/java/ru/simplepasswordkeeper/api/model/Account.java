@@ -1,7 +1,6 @@
 package ru.simplepasswordkeeper.api.model;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -62,14 +61,14 @@ public class Account implements Serializable {
      */
     public void putProperty(Map<String, String> props) throws NullPointerException {
         for(var entry : props.entrySet())
-            properties.put(entry.getKey(), entry.getKey());
+            properties.put(entry.getKey(), entry.getValue());
     }
 
     /**
-     * @return unmodifiable {@link Map} of properties.
+     * @return {@link Map} of properties.
      */
     public Map<String, String> getProperties() {
-        return Collections.unmodifiableMap(properties);
+        return properties;
     }
 
     @Override
@@ -88,5 +87,10 @@ public class Account implements Serializable {
             return name.equals(((Account) obj).name) && properties.equals(((Account) obj).properties);
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

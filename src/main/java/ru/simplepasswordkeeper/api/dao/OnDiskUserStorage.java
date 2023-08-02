@@ -12,9 +12,14 @@ import ru.simplepasswordkeeper.api.util.interfaces.EncryptionUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.FileSystemUtil;
 import ru.simplepasswordkeeper.api.util.interfaces.UserSerializationUtil;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * <p>Class designed to store {@code User}s on disk.</p>
+ * @author Nikita Osiptsov
+ */
 @Component
 public class OnDiskUserStorage implements UserStorage {
     private final CompressionUtil compressionUtil;
@@ -66,23 +71,34 @@ public class OnDiskUserStorage implements UserStorage {
             User user = userSerializationUtil.deserialize(userBytes);
             return user;
         } catch (Exception e) {
-            UserProcessingException upe = new UserProcessingException("Failed to extract user.");
-            upe.setStackTrace(e.getStackTrace());
-            throw upe;
+            throw convertToUpe(e, "Failed to extract user.");
         }
     }
 
     @Override
     public void saveUser(User user, String password) throws UserProcessingException {
         try {
+            File folder = new File(folderPath);
+            folder.mkdirs();
+
             byte[] userBytes = userSerializationUtil.serialize(user);
             String userString = encryptionUtil.encrypt(userBytes, password);
             userBytes = compressionUtil.compress(userString.getBytes());
             fileSystemUtil.WriteToFile(folderPath + "/" + user.getName(), userBytes, false);
         } catch (Exception e) {
-            UserProcessingException upe = new UserProcessingException("Failed to save user.");
-            upe.setStackTrace(e.getStackTrace());
-            throw upe;
+            throw convertToUpe(e, "Failed to save user.");
+        }
+    }
+
+    @Override
+    public void deleteUser(String name) throws UserAccessException, UserProcessingException {
+        if(!fileSystemUtil.fileExists(folderPath + "/" + name))
+            throw new UserAccessException("User does not exist.");
+
+        try {
+            fileSystemUtil.deleteFile(folderPath + "/" + name);
+        } catch (Exception e) {
+            throw convertToUpe(e, "Failed to delete user.");
         }
     }
 
@@ -102,5 +118,11 @@ public class OnDiskUserStorage implements UserStorage {
         if(folderPath == null || folderPath.isBlank())
             throw new IllegalArgumentException();
         this.folderPath = folderPath;
+    }
+
+    private UserProcessingException convertToUpe(Exception exception, String message) {
+        UserProcessingException upe = new UserProcessingException(message);
+        upe.setStackTrace(exception.getStackTrace());
+        return upe;
     }
 }

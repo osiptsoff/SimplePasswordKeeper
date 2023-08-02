@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class User implements Serializable {
     private String name;
-    private Set<Account> accounts;
+    private List<Account> accounts;
 
     /**
      * <p>Creates new user with specified {@code name}.</p>
@@ -18,7 +18,7 @@ public class User implements Serializable {
      */
     public User(String name) throws NullPointerException {
         this.setName(name);
-        accounts = new HashSet<Account>();
+        accounts = new LinkedList<Account>();
     }
 
     /**
@@ -40,7 +40,7 @@ public class User implements Serializable {
     }
 
     /**
-     * <p>Adds given account to this user. If account with same name exists, it will be overwritten.</p>
+     * <p>Adds given account to this user.</p>
      * @param account account to be associated with this user.
      * @throws NullPointerException if given account is {@code null}.
      */
@@ -48,7 +48,6 @@ public class User implements Serializable {
         if(account == null)
             throw new NullPointerException();
 
-        accounts.remove(account);
         accounts.add(account);
     }
 
@@ -58,16 +57,14 @@ public class User implements Serializable {
      * @throws NullPointerException if one of given accounts is {@code null}.
      */
     public void putAccount(Collection<Account> accounts) throws NullPointerException {
-        for(var account : accounts)
+        for(Account account : accounts)
             putAccount(account);
     }
 
     /**
-     * @return unmodifiable {@link Set} of properties.
+     * @return {@link Set} of properties.
      */
-    public Set<Account> getAccounts() {
-        return Collections.unmodifiableSet(accounts);
-    }
+    public List<Account> getAccounts() { return accounts; }
 
     @Override
     public int hashCode() {
@@ -85,5 +82,10 @@ public class User implements Serializable {
             return name.equals(((User) obj).name) && accounts.equals(((User) obj).accounts);
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
